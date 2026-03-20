@@ -2,35 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Genesis Plus GX Wide – s2.wide.gen</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Wideson — Genesis Plus GX Wide (Web)</title>
   <style>
-    html, body { height: 100%; margin: 0; background:#111; }
-    #wrap { position: fixed; inset: 0; display: grid; place-items: center; }
-    #game { width: 100vw; height: 100vh; max-width: 100%; }
+    html,body{height:100%;margin:0;background:#0b0d12;color:#e6e6e6;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+    #wrap{position:fixed;inset:0;display:flex;flex-direction:column}
+    header,footer{padding:.6rem 1rem}
+    header{display:flex;gap:.75rem;align-items:center;font-weight:600}
+    #game-container{flex:1;display:flex;align-items:center;justify-content:center}
+    #game{width:100%;height:100%;max-height:100vh}
+    button{background:#1f6feb;color:white;border:none;border-radius:10px;
+      padding:.5rem .75rem;cursor:pointer}
+    button:hover{filter:brightness(1.05)}
+    footer{opacity:.8;font-size:.9rem}
   </style>
 </head>
 <body>
-  <div id="wrap"><div id="game"></div></div>
+  <div id="wrap">
+    <header>
+      <span>Wideson — Genesis Plus GX Wide</span>
+      <button onclick="EJS_fullscreen()">Fullscreen</button>
+      <button onclick="EJS_pause()">Pause</button>
+      <button onclick="EJS_resume()">Resume</button>
+    </header>
+
+    <div id="game-container"><div id="game"></div></div>
+
+    <footer>Tip: You can plug in a gamepad; most modern browsers map it automatically.</footer>
+  </div>
 
   <script>
-    // Mount point for the emulator UI
+    // --- EmulatorJS configuration ---
     window.EJS_player = '#game';
-
-    // Use the widescreen Genesis core (you can also set EJS_core='segaMD', but this forces the wide build)
+    // Use the widescreen core
     window.EJS_core = 'genesis_plus_gx_wide';
-
-    // Your ROM (served via jsDelivr for proper CORS)
-    window.EJS_gameUrl = 'https://cdn.jsdelivr.net/gh/DoggyGamesShow123/wideson@main/s2.wide.gen';
-
-    // Optional niceties
-    window.EJS_gameName = 'S2 Wide (Genesis fan game)';
-    window.EJS_startOnLoaded = true;   // Note: audio may wait for a click due to browser policies
-    window.EJS_volume = 0.8;
-
-    // Point to the EmulatorJS CDN (stable). You can switch to 'latest' or 'nightly' if you want.
-    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    // Load your Sonic 2 widescreen fan game from GitHub via jsDelivr
+    window.EJS_gameUrl =
+      'https://cdn.jsdelivr.net/gh/DoggyGamesShow123/wideson@main/s2.wide.gen';
+    // Optional QoL
+    window.EJS_startOnLoaded = true;  // auto-start when ready
   </script>
-  https://cdn.emulatorjs.org/stable/data/loader.js</script>
+  <!-- CDN loader for EmulatorJS -->
+  https://www.emulatorjs.com/loader.js</script>
 </body>
 </html>
