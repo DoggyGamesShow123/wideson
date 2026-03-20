@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Genesis Plus GX Wide – s2.wide.gen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { height: 100%; margin: 0; background:#111; }
+    #wrap { position: fixed; inset: 0; display: grid; place-items: center; }
+    #game { width: 100vw; height: 100vh; max-width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="wrap"><div id="game"></div></div>
+
+  <script>
+    // Mount point for the emulator UI
+    window.EJS_player = '#game';
+
+    // Use the widescreen Genesis core (you can also set EJS_core='segaMD', but this forces the wide build)
+    window.EJS_core = 'genesis_plus_gx_wide';
+
+    // Your ROM (served via jsDelivr for proper CORS)
+    window.EJS_gameUrl = 'https://cdn.jsdelivr.net/gh/DoggyGamesShow123/wideson@main/s2.wide.gen';
+
+    // Optional niceties
+    window.EJS_gameName = 'S2 Wide (Genesis fan game)';
+    window.EJS_startOnLoaded = true;   // Note: audio may wait for a click due to browser policies
+    window.EJS_volume = 0.8;
+
+    // Point to the EmulatorJS CDN (stable). You can switch to 'latest' or 'nightly' if you want.
+    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+  </script>
+  https://cdn.emulatorjs.org/stable/data/loader.js</script>
+</body>
+</html>
