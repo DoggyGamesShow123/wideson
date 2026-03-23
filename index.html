@@ -1,140 +1,52 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Genesis Plus GX Wide — Quick Play</title>
+  <meta charset="UTF-8" />
+  <title>Knuckles 32X ROMHack</title>
+
   <style>
-    :root { color-scheme: dark; }
     body {
-      margin: 0; background: #0b0d12; color: #e6e6e6;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: black;
+      color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
     }
-    header, footer { padding: .8rem 1rem; }
-    header { display: flex; gap: .75rem; align-items: center; font-weight: 600; }
-    .controls {
-      display: grid; grid-template-columns: 1fr auto; gap: .5rem; padding: .75rem 1rem;
-      background: #0f1220; border-top: 1px solid #1b213a; border-bottom: 1px solid #1b213a;
+    canvas {
+      image-rendering: pixelated;
+      margin-top: 20px;
     }
-    .row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-    input[type="file"] { max-width: 320px; }
-    input[type="url"], input[type="text"] {
-      width: 100%; padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #2a3254;
-      background: #0c1022; color: #e6e6e6;
-    }
-    select, button {
-      padding: .5rem .75rem; border-radius: .65rem; border: 1px solid #2a3254;
-      background: #16213a; color: #e6e6e6; cursor: pointer;
-    }
-    button.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
-    button:hover { filter: brightness(1.07); }
-    #stage { position: fixed; inset: 150px 0 0 0; display: flex; }
-    #game { width: 100%; height: 100%; }
-    #tip { font-size: .9rem; opacity: .8; }
-    footer { font-size: .9rem; opacity: .8; }
-    .hidden { display: none !important; }
   </style>
+
+  <!-- Load emulator + audio -->
+  <script src="audioemu.js"></script>
+  <script src="jsgenesis.min.js"></script>
 </head>
+
 <body>
-  <header>
-    <div>Genesis Plus GX <span aria-hidden="true">—</span> Wide (Web)</div>
-    <button id="btnFS" class="hidden" title="Fullscreen">Fullscreen</button>
-    <button id="btnPause" class="hidden" title="Pause">Pause</button>
-    <button id="btnResume" class="hidden" title="Resume">Resume</button>
-  </header>
-
-  <!-- Simple controls: pick a file or paste a URL, then Run -->
-  <section class="controls">
-    <div class="row">
-      <label for="romFile"><strong>Choose ROM</strong> (.gen/.md/.bin…)</label>
-      <input id="romFile" type="file" accept=".gen,.md,.bin,.smd,.mdx,.zip,.7z" />
-      <span id="tip">You can also paste a ROM URL below.</span>
-    </div>
-
-    <div class="row" style="grid-column: 1 / -1;">
-      <input id="romUrl" type="url"
-        placeholder="Paste ROM URL (optional)…"
-        value="https://cdn.jsdelivr.net/gh/DoggyGamesShow123/wideson@main/s2.wide.gen" />
-      <select id="core">
-        <option value="genesis_plus_gx_wide" selected>Genesis Plus GX (Wide)</option>
-        <option value="genesis_plus_gx">Genesis Plus GX</option>
-      </select>
-      <button id="run" class="primary">Run</button>
-      <button id="reset">Reset</button>
-    </div>
-  </section>
-
-  <div id="stage"><div id="game"></div></div>
-  <footer>
-    Tip: Gamepads Just Work™ in most browsers. If the page doesn’t respond to your pad, click inside the game and try again.
-  </footer>
+  <h2>Knuckles Chaotix 32X ROMHack</h2>
+  <canvas id="screen" width="320" height="224"></canvas>
 
   <script>
-    // Minimal helper to dynamically start EmulatorJS *after* we know the ROM
-    const state = { loaderInserted: false, objectUrl: null };
-
-    const $ = sel => document.querySelector(sel);
-    const romFile = $('#romFile');
-    const romUrl  = $('#romUrl');
-    const coreSel = $('#core');
-    const btnRun  = $('#run');
-    const btnReset= $('#reset');
-    const btnFS   = $('#btnFS');
-    const btnPause= $('#btnPause');
-    const btnResume=$('#btnResume');
-
-    function disableInputs() {
-      romFile.disabled = romUrl.disabled = coreSel.disabled = btnRun.disabled = true;
-      btnFS.classList.remove('hidden');
-      btnPause.classList.remove('hidden');
-      btnResume.classList.remove('hidden');
+    async function loadRom() {
+      const res = await fetch("knuckles.32x");
+      const buf = await res.arrayBuffer();
+      return new Uint8Array(buf);
     }
-    function resetPage() {
-      if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
-      location.reload();
+
+    async function start() {
+      const rom = await loadRom();
+
+      const emulator = new JSGenesis({
+        romData: rom,
+        canvas: document.getElementById("screen"),
+        audio: new AudioEmuJS()
+      });
+
+      emulator.run();
     }
-    btnReset.addEventListener('click', resetPage);
 
-    btnRun.addEventListener('click', async () => {
-      let gameUrl = romUrl.value.trim();
-
-      // Prefer local file if provided
-      if (romFile.files && romFile.files[0]) {
-        state.objectUrl = URL.createObjectURL(romFile.files[0]);
-        gameUrl = state.objectUrl;
-      }
-      if (!gameUrl) {
-        alert('Pick a ROM file or paste a ROM URL first.');
-        return;
-      }
-
-      // Configure EmulatorJS globals *before* we insert loader.js
-      window.EJS_player = '#game';
-      window.EJS_core   = coreSel.value;        // 'genesis_plus_gx_wide' (default)
-      window.EJS_gameUrl= gameUrl;              // local object URL or remote URL
-      window.EJS_startOnLoaded = true;          // auto-start when core finishes loading
-
-      // Optional: tweak some defaults
-      window.EJS_biosUrl = '';                  // not required for Genesis carts
-      window.EJS_fullscreenOnLoad = false;
-
-      // Insert the loader only once
-      if (!state.loaderInserted) {
-        const s = document.createElement('script');
-        s.src = 'https://www.emulatorjs.com/loader.js';
-        s.async = true;
-        s.onerror = () => alert('Failed to load EmulatorJS. Check your connection.');
-        document.body.appendChild(s);
-        state.loaderInserted = true;
-      }
-
-      disableInputs();
-    });
-
-    // Wire controls exposed by EmulatorJS once it’s loaded
-    btnFS.addEventListener('click', () => { try { window.EJS_fullscreen(); } catch {} });
-    btnPause.addEventListener('click', () => { try { window.EJS_pause(); } catch {} });
-    btnResume.addEventListener('click', () => { try { window.EJS_resume(); } catch {} });
+    start();
   </script>
 </body>
 </html>
