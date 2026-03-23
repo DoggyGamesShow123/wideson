@@ -1,0 +1,94 @@
+name: Build 32X Emulator HTML
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Create build directory
+        run: mkdir build
+
+      - name: Convert ROM to Base64
+        run: |
+          base64 knuckles.32x > build/rom.b64
+
+      - name: Download audioemu.js
+        run: |
+          curl -L https://unpkg.com/audioemujs/dist/audioemu.js -o build/audioemu.js
+
+      - name: Download JS Genesis (32x-capable) emulator core
+        run: |
+          curl -L https://unpkg.com/jsgenesis/dist/jsgenesis.min.js -o build/emulator.js
+
+      - name: Generate HTML emulator page
+        run: |
+          echo "<!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset='UTF-8'>
+            <title>Knuckles Chaotix 32X ROMHack</title>
+
+            <script src='audioemu.js'></script>
+            <script src='emulator.js'></script>
+
+            <style>
+              body {
+                background: #000;
+                color: white;
+                margin: 0;
+                overflow: hidden;
+                font-family: sans-serif;
+                text-align: center;
+              }
+              canvas {
+                image-rendering: pixelated;
+                margin-top: 20px;
+              }
+            </style>
+          </head>
+
+          <body>
+            <h2>Knuckles ROMHack - Sega 32X</h2>
+            <canvas id='screen' width='320' height='224'></canvas>
+
+            <script>
+              async function loadRom() {
+                const response = await fetch('rom.b64');
+                const b64 = await response.text();
+                const binary = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+                return binary;
+              }
+
+              async function startEmu() {
+                const rom = await loadRom();
+                const emulator = new JSGenesis({
+                  romData: rom,
+                  canvas: document.getElementById('screen'),
+                  audio: new AudioEmuJS()
+                });
+                emulator.run();
+              }
+
+              startEmu();
+            </script>
+          </body>
+          </html>" > build/index.html
+
+      - name: Upload emulator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 32x-emulator-html
+          path: build/index.html
